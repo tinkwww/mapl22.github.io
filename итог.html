@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Карта школы</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #e2e8f0;
+            color: #0f172a;
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .app {
+            max-width: 480px;
+            margin: 15px auto;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #2c5282;
+            font-size: 1.8em;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 0.95em;
+            margin-top: 6px;
+        }
+
+        .floor-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .floor-btn {
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 8px;
+            border: 2px solid #bee3f8;
+            cursor: pointer;
+            background: #ffffff;
+            color: #2c5282;
+            transition: all 0.2s;
+        }
+
+        .floor-btn.active {
+            background: #3182ce;
+            color: #ffffff;
+            border-color: #3182ce;
+        }
+
+        .floor-btn:hover {
+            background: #ebf8ff;
+        }
+
+        .floor-btn.active:hover {
+            background: #2c5282;
+        }
+
+        .search-section {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            background: #ebf8ff;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px 15px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            outline: none;
+            background: #ffffff;
+        }
+
+        input:focus {
+            border-color: #3182ce;
+        }
+
+        button {
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            background: #3182ce;
+            color: #ffffff;
+        }
+
+        button:hover {
+            background: #2c5282;
+        }
+
+        .maps {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .map-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 15px;
+            flex: 1;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e2e8f0;
+        }
+
+        .map-title {
+            font-weight: 600;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            color: #2c5282;
+            text-align: center;
+            padding-bottom: 6px;
+            border-bottom: 2px solid #bee3f8;
+        }
+
+        .map-title.step-1,
+        .map-title.step-2 {
+            color: #2c5282;
+            border-bottom-color: #3182ce;
+        }
+
+        .map-wrapper {
+            width: 100%;
+            height: 400px;
+            background: #f7fafc;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            position: relative;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .label {
+            font-size: 12px;
+            font-weight: 700;
+            fill: #2c5282;
+            text-anchor: middle;
+        }
+
+        .route,
+        .route-step-1,
+        .route-step-2 {
+            stroke: #3182ce;
+            stroke-width: 4;
+            fill: none;
+            opacity: 0.9;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .node {
+            fill: #a0aec0;
+            stroke: #ffffff;
+            stroke-width: 1;
+        }
+
+        .room {
+            fill: #3182ce;
+            stroke: #ffffff;
+            stroke-width: 1.5;
+            cursor: pointer;
+        }
+
+        .staircase {
+            fill: #718096;
+            stroke: #ffffff;
+            stroke-width: 1.5;
+            cursor: pointer;
+        }
+
+        .entrance {
+            fill: #48bb78;
+            stroke: #ffffff;
+            stroke-width: 2;
+        }
+
+        .instructions {
+            background: #ebf8ff;
+            color: #2c5282;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #bee3f8;
+        }
+
+        .instructions h3 {
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            color: #2c5282;
+        }
+
+        .instructions p {
+            line-height: 1.5;
+            font-size: 0.9em;
+            color: #4a5568;
+        }
+
+        @media (max-width: 480px) {
+            .app {
+                padding: 16px;
+                margin: 10px;
+            }
+
+            h1 {
+                font-size: 1.6em;
+            }
+
+            .search-section {
+                flex-direction: column;
+                padding: 12px;
+            }
+
+            input,
+            button {
+                width: 100%;
+                padding: 10px;
+                font-size: 14px;
+            }
+
+            .map-wrapper {
+                height: 350px;
+            }
+
+            .map-title {
+                font-size: 1em;
+            }
+
+            .floor-selector {
+                gap: 5px;
+            }
+
+            .floor-btn {
+                padding: 6px 12px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <header>
+            <h1>Карта школы</h1>
+            <p class="subtitle">Найдите любой кабинет за несколько секунд</p>
+        </header>
+
+        <div class="instructions">
+            <h3>Как пользоваться:</h3>
+            <p>Введите номер кабинета или название. Маршрут будет построен автоматически!</p>
+        </div>
+
+        <div class="floor-selector">
+            <button class="floor-btn active" onclick="switchFloor(1)">1 этаж</button>
+            <button class="floor-btn" onclick="switchFloor(2)">2 этаж</button>
+            <button class="floor-btn" onclick="switchFloor(3)">3 этаж</button>
+        </div>
+
+        <div class="search-section">
+            <input id="roomInput" placeholder="Введите номер или название:" maxlength="30" />
+            <button onclick="buildRoute()">Найти</button>
+        </div>
+
+        <div class="maps" id="maps"></div>
+    </div>
+
+<!-- данные этажейЯ -->
+<script>
+let currentFloor = 1;
+    const roomAliases = {
+        '101': 'r101', '102': 'r102', '103': 'r103', '104': 'r104', 
+        '105': 'r105', '106': 'r106', '107': 'r107', '108': 'r108', 
+        '111': 'r111', '114': 'r114', '201': 'r201', '202': 'r202', 
+        '203': 'r203', '204': 'r204', '205': 'r205', '206': 'r206', 
+        '207': 'r207', '208': 'r208', '214': 'r214', '215': 'r215', 
+        '216': 'r216', 'тюбик': 'r216', 'Тюбик': 'r216', '217': 'r217', 
+        '218': 'r218', '219': 'r219', '221': 'r221', '222': 'r222', 
+        '301': 'r301', '302': 'r302', '303': 'r303', '304': 'r304', 
+        '305': 'r305', '306': 'r306', '307': 'r307', '308': 'r308', 
+        '309': 'r309', '310': 'r310','311': 'r311',
+        'точка кипения': 'tk', 'Точка кипения': 'tk', 'Точка Кипения': 'tk', 'тк': 'tk', 'ТК': 'tk', 'точкакипения': 'tk', 
+        'спортзал': 'sport', 'Спортзал': 'sport', 'спорт': 'sport', 'Спорт': 'sport',
+        'бином': 'binom', 'Бином': 'binom',
+        'лиом': 'liom1', 'ЛИОМ': 'liom1', 'лиом 1': 'liom1', 'лиом1': 'liom1', 'Лиом 1': 'liom1', 'Лиом1': 'liom1', 
+        'лиом 2': 'liom2', 'лиом2': 'liom2', 'Лиом2': 'liom2', 'Лиом 2': 'liom2',
+        'лиом 3': 'liom3', 'лиом3': 'liom3', 'Лиом3': 'liom3', 'Лиом 3': 'liom3',
+        'ny': 'ny', 'NY': 'ny', 'New York': 'ny', 'NewYork': 'ny', 'newyork': 'ny', 
+        'l': 'l', 'L': 'l', 'London': 'l', 'london': 'l', 'Лондон': 'l',
+        'vr': 'vr', 'VR': 'vr', 
+        'мед': 'mk', 'Мед': 'mk', 'Медкабинет': 'mk', 'медкабинет': 'mk', 'Мед кабинет': 'mk', 'мед кабинет': 'mk',
+        'сидней': 's', 'Сидней': 's', 'sydney': 's', 'Sydney': 's', 
+        'столовая': 'st', 'Столовая': 'st',
+        'приемная': 'pr', 'Приемная': 'pr',
+        'art': 'art', 'арт': 'art', 'арториум': 'art', 'Арториум': 'art', 'Арт': 'art',
+        'alpha': 'a', 'альфа': 'a', 'Альфа': 'a', 
+        'betta': 'b', 'бетта': 'b', 'бета': 'b', 'Бетта': 'b', 'Бета': 'b',
+    };
+    const roomReverseAliases = {
+        'r101': '101', 'r102': '102', 'r103': '103', 'r104': '104', 
+        'r105': '105', 'r106': '106', 'r107': '107', 'r108': '108',
+        'r111': '111', 'r114': '114','r201': '201', 'r202': '202', 
+        'r203': '203', 'r204': '204', 'r205': '205', 'r206': '206', 
+        'r207': '207', 'r208': '208','r214': '214', 'r215': '215', 
+        'r216': '216', 'r217': '217', 'r218': '218', 'r219': '219', 
+        'r221': '221', 'r222': '222','r301': '301', 'r302': '302', 
+        'r303': '303', 'r304': '304', 'r305': '305', 'r306': '306', 
+        'r307': '307', 'r308': '308','r309': '309', 'r310': '310', 
+        'r311': '311','tk': 'точка кипения', 'sport': 'спортзал', 'binom': 'бином',
+        'liom1': 'лиом 1', 'liom2': 'лиом 2', 'liom3': 'лиом 3','ny': 'New york', 
+        'l': 'London', 'vr': 'VR','mk': 'Медкабинет', 's': 'Sydney', 
+        'pr': 'Приемная','st': 'столовая','art': 'Арториум', 'a': 'Альфа', 
+        'b': 'Бетта'
+    };
+const mapsEl = document.getElementById('maps');
+const roomInput = document.getElementById('roomInput');
+</script>
+
+<!-- планы всех этжей -->
+<script>
+const floors = {
+    1: {
+        plan: [
+            { type: 'line', points: [
+                { x: 10, y: 650 }, { x: 10, y: 10 }, { x: 70, y: 10 }, { x: 130, y: 10 }, 
+                { x: 130, y: 150 }, { x: 130, y: 210 }, { x: 130, y: 270 }, { x: 370, y: 270 }, 
+                { x: 370, y: 10 }, { x: 490, y: 10 }, { x: 490, y: 650 }, { x: 370, y: 650 }, 
+                { x: 370, y: 390 }, { x: 270, y: 390 }, { x: 270, y: 420 }, { x: 230, y: 420 },
+                { x: 230, y: 390 }, { x: 130, y: 390 }, { x: 130, y: 650 }, { x: 10, y: 650 }]
+            },
+            { type: 'line', points: [
+                { x: 70, y: 10 }, { x: 70, y: 90 }, { x: 10, y: 90 }]
+            }, 
+            { type: 'line', points: [
+                { x: 70, y: 90 }, { x: 70, y: 170 }, { x: 10, y: 170 }]
+            },
+            { type: 'line', points: [
+                { x: 70, y: 170 }, { x: 70, y: 250 }, { x: 10, y: 250 }]
+            }, 
+            { type: 'line', points: [
+                { x: 70, y: 250 }, { x: 70, y: 330 }, { x: 10, y: 330 }]
+            },
+            { type: 'line', points: [
+                { x: 70, y: 330 }, { x: 70, y: 410 }, { x: 10, y: 410 }]
+            }, 
+            { type: 'line', points: [
+                { x: 70, y: 410 }, { x: 70, y: 490 }, { x: 10, y: 490 }]
+            },
+            { type: 'line', points: [
+                { x: 70, y: 490 }, { x: 70, y: 570 }, { x: 10, y: 570 }]
+            }, 
+            { type: 'line', points: [
+                { x: 70, y: 570 }, { x: 70, y: 650 }, { x: 10, y: 650 }]
+            },
+            { type: 'line', points: [
+                { x: 130, y: 450 }, { x: 100, y: 450 }, { x: 100, y: 510 }, { x: 130, y: 510 }]
+            },
+            { type: 'line', points: [
+                { x: 130, y: 150 }, { x: 100, y: 150 }, { x: 100, y: 210 }, { x: 130, y: 210 }]
+            },
+            { type: 'line', points: [
+                { x: 370, y: 270 }, { x: 490, y: 270 }]
+            }, 
+            { type: 'line', points: [
+                { x: 130, y: 270 }, { x: 130, y: 330 }, { x: 370, y: 330 }, { x: 370, y: 270 }]
+            },
+            { type: 'line', points: [
+                { x: 370, y: 450 }, { x: 430, y: 450 }, { x: 430, y: 550 }, { x: 370, y: 550 }]
+            },
+            { type: 'line', points: [
+                { x: 490, y: 550 }, { x: 430, y: 550 }]
+            },
+            { type: 'line', points: [
+                { x: 430, y: 550 }, { x: 490, y: 550 }, { x: 490, y: 650 }, { x: 430, y: 650 }, 
+                { x: 430, y: 550 }]
+            }, 
+            { type: 'line', points: [
+                { x: 490, y: 390 }, { x: 430, y: 390 }, { x: 430, y: 450 }]
+            },
+            { type: 'line', points: [
+                { x: 100, y: 210 }, { x: 100, y: 270 }]
+            }, 
+            { type: 'line', points: [
+                { x: 100, y: 390 }, { x: 100, y: 450 }]
+            }, 
+            { type: 'line', points: [
+                { x: 400, y: 390 }, { x: 400, y: 450 }]
+            }
+        ],
+        nodes: {
+            entry: { x: 250, y: 390, label: 'Вход' },
+            u1: { x: 90, y: 610 }, u2: { x: 90, y: 530 }, u3: { x: 90, y: 490 }, u4: { x: 90, y: 450 }, 
+            u5: { x: 90, y: 370 }, u6: { x: 90, y: 360 }, u7: { x: 115, y: 360 }, u8: { x: 90, y: 290 },
+            u9: { x: 90, y: 210 }, u10: { x: 90, y: 170 }, u11: { x: 90, y: 130 }, u12: { x: 90, y: 50 },
+            u13: { x: 250, y: 360 }, u14: { x: 270, y: 360 }, u15: { x: 400, y: 360 }, u16: { x: 410, y: 360 }, 
+            u17: { x: 410, y: 410 }, u18: { x: 385, y: 360 },
+            r101: { x: 40, y: 610, label: '101' }, r102: { x: 40, y: 530, label: '102' }, r103: { x: 40, y: 450, label: '103' }, r104: { x: 40, y: 370, label: '104' },
+            r105: { x: 40, y: 290, label: '105' }, r106: { x: 40, y: 210, label: '106' }, r107: { x: 40, y: 130, label: '107' }, r108: { x: 40, y: 50, label: '108' },
+            r111: { x: 115, y: 490, label: '111' }, r114: { x: 115, y: 170, label: '114' },
+            stairs1: { x: 115, y: 430, label: '^' }, stairs2: { x: 115, y: 250, label: '^' }, stairs3: { x: 385, y: 430, label: '^' },
+            liom1: { x: 410, y: 470, label: 'Л1' }, liom2: { x: 410, y: 570, label: 'Л2' }, liom3: { x: 450, y: 570, label: 'Л3' },
+            tk: { x: 270, y: 310, label: 'Точка Кипения' }, sport: { x: 400, y: 250, label: 'Спортзал' }, binom: { x: 460, y: 410, label: 'БиНОМ' }
+        },
+        edges: [
+            ['entry', 'u13'], ['u13', 'u6'], ['u6', 'u5'], ['u5', 'u8'], 
+            ['u8', 'u9'], ['u9', 'u10'], ['u10', 'u11'], ['u11', 'u12'],
+            ['u5', 'u4'], ['u4', 'u3'], ['u3', 'u2'], ['u2', 'u1'], 
+            ['u13', 'u14'], ['u14', 'u18'], ['u18', 'u15'], ['u15', 'u16'],
+            ['u1', 'r101'], ['u2', 'r102'], ['u3', 'r103'], ['u4', 'r104'], 
+            ['u5', 'r105'], ['u8', 'r104'], ['u9', 'r103'], ['u10', 'r106'],
+            ['u11', 'r107'], ['u12', 'r108'], ['u3', 'r111'], ['u10', 'r114'], 
+            ['u7', 'stairs1'], ['u7', 'stairs2'], ['u18', 'stairs3'],
+            ['u14', 'tk'], ['u15', 'sport'], ['u16', 'u17'], ['u17', 'binom'],
+            ['u17', 'liom1'], ['u17', 'liom2'], ['u17', 'liom3']
+        ],
+        rooms: { 
+            r101: 'r101', r102: 'r102', r103: 'r103', r104: 'r104', 
+            r105: 'r105', r106: 'r106', r107: 'r107', r108: 'r108', 
+            r111: 'r111', r114: 'r114', 
+            tk: 'tk', sport: 'sport', binom: 'binom', liom1: 'liom1', 
+            liom2: 'liom2', liom3: 'liom3' 
+        },
+        stairs: { stairs1: 'stairs1', stairs2: 'stairs2', stairs3: 'stairs3' }
+    },
+    2: {
+        plan: [
+            { type: 'line', points: [
+                { x: 10, y: 650 }, { x: 10, y: 10 }, { x: 70, y: 10 }, { x: 130, y: 10 }, 
+                { x: 130, y: 150 }, { x: 130, y: 210 }, { x: 130, y: 270 }, { x: 490, y: 270 }, 
+                { x: 490, y: 650 }, { x: 370, y: 650 }, { x: 370, y: 390 }, { x: 230, y: 390 }, 
+		{ x: 130, y: 390 }, { x: 130, y: 650 }, { x: 10, y: 650 }]
+            },
+            { type: 'line', points: [
+                { x: 70, y: 10 }, { x: 70, y: 90 }, { x: 10, y: 90 }]
+            }, 
+            { type: 'line', points: [
+                { x: 70, y: 90 }, { x: 70, y: 170 }, { x: 10, y: 170 }]
+            },
+            { type: 'line', points: [
+                { x: 70, y: 170 }, { x: 70, y: 250 }, { x: 10, y: 250 }]
+            }, 
+            { type: 'line', points: [
+                { x: 70, y: 250 }, { x: 70, y: 330 }, { x: 10, y: 330 }]
+            },
+            { type: 'line', points: [
+                { x: 70, y: 330 }, { x: 70, y: 410 }, { x: 10, y: 410 }]
+            }, 
+            { type: 'line', points: [
+                { x: 70, y: 410 }, { x: 70, y: 490 }, { x: 10, y: 490 }]
+            },
+            { type: 'line', points: [
+                { x: 70, y: 490 }, { x: 70, y: 570 }, { x: 10, y: 570 }]
+            }, 
+            { type: 'line', points: [
+                { x: 70, y: 570 }, { x: 70, y: 650 }, { x: 10, y: 650 }]
+            },
+            { type: 'line', points: [
+                { x: 130, y: 30 }, { x: 100, y: 30 }, { x: 100, y: 90 }, { x: 130, y: 90 }, 
+                { x: 100, y: 90 }, { x: 100, y: 150 }, { x: 130, y: 150 }, { x: 100, y: 150 },
+                { x: 100, y: 210 }, { x: 130, y: 210 }]
+            },
+            { type: 'line', points: [
+                { x: 130, y: 450 }, { x: 100, y: 450 }, { x: 100, y: 530 }, { x: 130, y: 530 },
+                { x: 100, y: 530 }, { x: 100, y: 590 }, { x: 130, y: 590 }]
+            },
+            { type: 'line', points: [
+                { x: 130, y: 270 }, { x: 130, y: 330 }, { x: 210, y: 330 }, { x: 210, y: 270 }, 
+                { x: 210, y: 330 }, { x: 250, y: 330 }, { x: 250, y: 270 }, { x: 250, y: 330 }, 
+                { x: 330, y: 330 }, { x: 330, y: 270 }, { x: 330, y: 330 }, { x: 370, y: 330 }, 
+                { x: 370, y: 270 }]
+            },
+            { type: 'line', points: [
+                { x: 150, y: 390 }, { x: 150, y: 350 }, { x: 210, y: 350 }, { x: 210, y: 390 }, 
+                { x: 210, y: 350 }, { x: 270, y: 350 }, { x: 270, y: 390 }, { x: 270, y: 350 }, 
+                { x: 350, y: 350 }, { x: 350, y: 390 }]
+            },
+            { type: 'line', points: [
+                { x: 430, y: 270 }, { x: 430, y: 370 }, { x: 490, y: 370 }, { x: 430, y: 370 }, 
+                { x: 430, y: 470 }, { x: 490, y: 470 }, { x: 370, y: 470 }]
+            },
+            { type: 'line', points: [
+                { x: 370, y: 270 }, { x: 490, y: 270 }]
+            }, 
+            { type: 'line', points: [
+                { x: 100, y: 210 }, { x: 100, y: 270 }]
+            },
+            { type: 'line', points: [
+                { x: 100, y: 390 }, { x: 100, y: 450 }]
+            }, 
+            { type: 'line', points: [
+                { x: 400, y: 390 }, { x: 400, y: 450 }, { x: 370, y: 450 }]
+            }
+        ],
+        nodes: {
+            u1: { x: 90, y: 610 }, u2: { x: 90, y: 560 }, u3: { x: 90, y: 530 }, u4: { x: 90, y: 490 }, 
+            u5: { x: 90, y: 450 }, u6: { x: 90, y: 370 }, u7: { x: 115, y: 370 }, u8: { x: 90, y: 290 }, 
+            u9: { x: 90, y: 210 }, u10: { x: 90, y: 180 }, u11: { x: 90, y: 130 }, u12: { x: 90, y: 120 },
+            u13: { x: 90, y: 60 }, u14: { x: 90, y: 50 }, u15: { x: 115, y: 340 }, u16: { x: 170, y: 340 }, 
+            u17: { x: 180, y: 340 }, u18: { x: 230, y: 340 }, u19: { x: 240, y: 340 }, u20: { x: 290, y: 340 }, 
+            u21: { x: 310, y: 340 }, u22: { x: 350, y: 340 }, u23: { x: 385, y: 340 }, u24: { x: 385, y: 320 },
+            u25: { x: 410, y: 340 }, u26: { x: 410, y: 420 }, u27: { x: 115, y: 290 },
+            r201: { x: 40, y: 610, label: '201' }, r202: { x: 40, y: 530, label: '202' }, r203: { x: 40, y: 450, label: '203' }, r204: { x: 40, y: 370, label: '204' },
+            r205: { x: 40, y: 290, label: '205' }, r206: { x: 40, y: 210, label: '206' }, r207: { x: 40, y: 130, label: '207' }, r208: { x: 40, y: 50, label: '208' },
+            r214: { x: 170, y: 300, label: '214' }, r215: { x: 230, y: 300, label: '215' }, r216: { x: 290, y: 300, label: '216' }, r217: { x: 350, y: 300, label: '217' },
+            r218: { x: 460, y: 320, label: '218' }, r219: { x: 460, y: 420, label: '219' }, r221: { x: 240, y: 365, label: '221' }, r222: { x: 180, y: 365, label: '222' },
+            ny: { x: 115, y: 60, label: 'NY' }, l: { x: 115, y: 120, label: 'L' }, vr: { x: 115, y: 180, label: 'VR' }, s: { x: 115, y: 490, label: 'S' },
+            mk: { x: 115, y: 560, label: 'Мед' }, pr: { x: 310, y: 365, label: 'Приемная' }, st: { x: 410, y: 510, label: 'Столовая' },
+            stairs1: { x: 115, y: 430, label: '^' }, stairs2: { x: 115, y: 250, label: '^' }, stairs3: { x: 385, y: 430, label: '^' }
+        },
+        edges: [
+            ['u1', 'r201'], ['u1', 'u2'], ['u2', 'mk'], ['u2', 'u3'], 
+            ['u3', 'r202'], ['u3', 'u4'], ['u4', 's'], ['u4', 'u5'],
+            ['u5', 'r203'], ['u5', 'u6'], ['u6', 'r204'], ['u6', 'u7'], 
+            ['u6', 'u8'], ['u8', 'r205'], ['u8', 'u9'], ['u9', 'r206'],
+            ['u9', 'u10'], ['u10', 'vr'], ['u10', 'u11'], ['u11', 'r207'], 
+            ['u11', 'u12'], ['u12', 'l'], ['u12', 'u13'], ['u13', 'ny'],
+            ['u13', 'u14'], ['u14', 'r208'], ['u7', 'stairs1'], ['u7', 'u15'], 
+            ['u15', 'stairs2'], ['u15', 'u16'], ['u16', 'r214'], ['u16', 'u17'],
+            ['u17', 'r222'], ['u17', 'u18'], ['u18', 'r215'], ['u18', 'u19'], 
+            ['u19', 'r221'], ['u19', 'u20'], ['u20', 'r216'], ['u20', 'u21'],
+            ['u21', 'pr'], ['u21', 'u22'], ['u22', 'r217'], ['u22', 'u23'], 
+            ['u23', 'u24'], ['u24', 'r218'], ['u23', 'u25'], ['u25', 'u26'],
+            ['u26', 'r219'], ['u26', 'st'], ['u23', 'stairs3'], ['stairs2', 'u27'],
+            ['u27', 'u8']
+        ],
+        rooms: { 
+            r201: 'r201', r202: 'r202', r203: 'r203', r204: 'r204', 
+            r205: 'r205', r206: 'r206', r207: 'r207', r208: 'r208',
+            r214: 'r214', r215: 'r215', r216: 'r216', r217: 'r217', 
+            r218: 'r218', r219: 'r219', r221: 'r221', r222: 'r222', 
+            ny: 'ny', l: 'l', vr: 'vr', mk: 'mk', pr: 'pr', st: 'st',
+            s: 's' 
+        },
+        stairs: { stairs1: 'stairs1', stairs2: 'stairs2', stairs3: 'stairs3' }
+    },
+    3: {
+        plan: [
+            { type: 'line', points: [
+                { x: 10, y: 650 }, { x: 10, y: 10 }, { x: 130, y: 10 }, { x: 130, y: 650 }, 
+                { x: 10, y: 650 }]
+            },
+            { type: 'line', points: [
+                { x: 70, y: 10 }, { x: 70, y: 90 }, { x: 10, y: 90 }, { x: 70, y: 90 }, 
+                { x: 70, y: 170 }, { x: 10, y: 170 }, { x: 70, y: 170 }, { x: 70, y: 250 },
+                { x: 10, y: 250 }, { x: 70, y: 250 }, { x: 70, y: 330 }, { x: 10, y: 330 }, 
+                { x: 70, y: 330 }, { x: 70, y: 410 }, { x: 10, y: 410 }, { x: 70, y: 410 },
+                { x: 70, y: 470 }, { x: 10, y: 470 }, { x: 70, y: 470 }, { x: 70, y: 530 }, 
+                { x: 10, y: 530 }, { x: 70, y: 530 }, { x: 70, y: 590 }, { x: 10, y: 590 },
+                { x: 70, y: 590 }, { x: 70, y: 650 }
+            ]},
+            { type: 'line', points: [
+                { x: 130, y: 50 }, { x: 100, y: 50 }, { x: 100, y: 150 }, { x: 130, y: 150 }, 
+                { x: 100, y: 150 }, { x: 100, y: 210 }, { x: 130, y: 210 }, { x: 100, y: 210 },
+                { x: 100, y: 270 }
+            ]},
+            { type: 'line', points: [
+                { x: 130, y: 290 }, { x: 100, y: 290 }, { x: 100, y: 370 }, { x: 130, y: 370 }
+            ]},
+            { type: 'line', points: [
+                { x: 100, y: 390 }, { x: 100, y: 450 }, { x: 130, y: 450 }, { x: 100, y: 450 }, 
+                { x: 100, y: 530 }, { x: 130, y: 530 }, { x: 100, y: 530 }, { x: 100, y: 610 },
+                { x: 130, y: 610 }
+            ]}
+        ],
+        nodes: {
+            u1: { x: 90, y: 620 }, u2: { x: 90, y: 570 }, u3: { x: 90, y: 560 }, u4: { x: 90, y: 500 }, 
+            u5: { x: 90, y: 490 }, u6: { x: 90, y: 440 }, u7: { x: 90, y: 380 }, u8: { x: 90, y: 370 }, 
+            u9: { x: 90, y: 330 }, u10: { x: 90, y: 290 }, u11: { x: 90, y: 280 }, u12: { x: 90, y: 210 },
+            u13: { x: 90, y: 180 }, u14: { x: 90, y: 130 }, u15: { x: 90, y: 100 }, u16: { x: 90, y: 50 }, 
+            u17: { x: 115, y: 380 }, u18: { x: 115, y: 280 },
+            r301: { x: 40, y: 620, label: '301' }, r302: { x: 40, y: 560, label: '302' }, r303: { x: 40, y: 500, label: '303' }, r304: { x: 40, y: 440, label: '304' },
+            r305: { x: 115, y: 330, label: '305' }, r306: { x: 40, y: 370, label: '306' }, r307: { x: 40, y: 290, label: '307' }, r308: { x: 40, y: 210, label: '308' },
+            r309: { x: 115, y: 180, label: '309' }, r310: { x: 40, y: 130, label: '310' }, r311: { x: 40, y: 50, label: '311' },
+            art: { x: 115, y: 100, label: 'ART' }, b: { x: 115, y: 490, label: 'Betta' }, a: { x: 115, y: 570, label: 'Alpha' },
+            stairs1: { x: 115, y: 430, label: '^' }, stairs2: { x: 115, y: 250, label: '^' }
+        },
+        edges: [
+            ['u1', 'r301'], ['u1', 'u2'], ['u2', 'a'], ['u2', 'u3'], 
+            ['u3', 'r302'], ['u3', 'u4'], ['u4', 'r303'], ['u4', 'u5'],
+            ['u5', 'b'], ['u5', 'u6'], ['u6', 'r304'], ['u6', 'u7'], 
+            ['u7', 'u17'], ['u7', 'u8'], ['u8', 'r306'], ['u8', 'u9'], 
+            ['u9', 'r305'], ['u9', 'u10'], ['u10', 'r307'], ['u10', 'u11'],
+            ['u11', 'u18'], ['u11', 'u12'], ['u12', 'r308'], ['u12', 'u13'], 
+            ['u13', 'r309'], ['u13', 'u14'], ['u14', 'r310'], ['u14', 'u15'], 
+            ['u15', 'art'], ['u15', 'u16'], ['u16', 'r311'], 
+            ['u18', 'stairs2'], ['u17', 'stairs1']
+        ],
+        rooms: { 
+            r301: 'r301', r302: 'r302', r303: 'r303', r304: 'r304', 
+            r305: 'r305', r306: 'r306', r307: 'r307', r308: 'r308', 
+            r309: 'r309', r310: 'r310', r311: 'r311', 
+            art: 'art', a: 'a', b: 'b' 
+        },
+        stairs: { stairs1: 'stairs1', stairs2: 'stairs2' }
+    }
+};
+</script>
+
+<!-- маршруты все -->
+<script>
+const roomPaths1 = {
+    r101: ['entry', 'u13', 'u6', 'u1', 'r101'], r102: ['entry', 'u13', 'u6', 'u2', 'r102'], r103: ['entry', 'u13', 'u6', 'u4', 'r103'],
+    r104: ['entry', 'u13', 'u6', 'u5', 'r104'], r105: ['entry', 'u13', 'u6', 'u8', 'r105'], r106: ['entry', 'u13', 'u6', 'u9', 'r106'],
+    r107: ['entry', 'u13', 'u6', 'u11', 'r107'], r108: ['entry', 'u13', 'u6', 'u12', 'r108'], r111: ['entry', 'u13', 'u6', 'u3', 'r111'],
+    r114: ['entry', 'u13', 'u6', 'u10', 'r114'], tk: ['entry', 'u13', 'u14', 'tk'], sport: ['entry', 'u13', 'u15', 'sport'],
+    binom: ['entry', 'u13', 'u16', 'u17', 'binom'], liom1: ['entry', 'u13', 'u16', 'liom1'], liom2: ['entry', 'u13', 'u16', 'liom2'],
+    liom3: ['entry', 'u13', 'u16', 'liom2', 'liom3']
+};
+
+const roomPaths2 = {
+    r201: { step1: ['entry', 'u13', 'u7', 'stairs1'], step2: ['stairs1', 'u7', 'u6', 'u1', 'r201'] },
+    r202: { step1: ['entry', 'u13', 'u7', 'stairs1'], step2: ['stairs1', 'u7', 'u6', 'u3', 'r202'] },
+    r203: { step1: ['entry', 'u13', 'u7', 'stairs1'], step2: ['stairs1', 'u7', 'u6', 'u5', 'r203'] },
+    r204: { step1: ['entry', 'u13', 'u7', 'stairs1'], step2: ['stairs1', 'u7', 'r204'] },
+    r205: { step1: ['entry', 'u13', 'u7', 'stairs2'], step2: ['stairs2', 'u27', 'u8', 'r205'] },
+    r206: { step1: ['entry', 'u13', 'u7', 'stairs2'], step2: ['stairs2', 'u27', 'u8', 'u9', 'r206'] },
+    r207: { step1: ['entry', 'u13', 'u7', 'stairs2'], step2: ['stairs2', 'u27', 'u8', 'u11', 'r207'] },
+    r208: { step1: ['entry', 'u13', 'u7', 'stairs2'], step2: ['stairs2', 'u27', 'u8', 'u14', 'r208'] },
+    mk: { step1: ['entry', 'u13', 'u7', 'stairs1'], step2: ['stairs1', 'u7', 'u6', 'u2', 'mk'] },
+    s: { step1: ['entry', 'u13', 'u7', 'stairs1'], step2: ['stairs1', 'u7', 'u6', 'u4', 's'] },
+    ny: { step1: ['entry', 'u13', 'u7', 'stairs2'], step2: ['stairs2', 'u27', 'u8', 'u13', 'ny'] },
+    l: { step1: ['entry', 'u13', 'u7', 'stairs2'], step2: ['stairs2', 'u27', 'u8', 'u12', 'l'] },
+    vr: { step1: ['entry', 'u13', 'u7', 'stairs2'], step2: ['stairs2', 'u27', 'u8', 'u10', 'vr'] },
+    r214: { step1: ['entry', 'u13', 'u7', 'stairs2'], step2: ['stairs2', 'u15', 'u16', 'r214'] },
+    r215: { step1: ['entry', 'u13', 'u7', 'stairs2'], step2: ['stairs2', 'u15', 'u18', 'r215'] },
+    r216: { step1: ['entry', 'u13', 'u18', 'stairs3'], step2: ['stairs3', 'u23', 'u20', 'r216'] },
+    r217: { step1: ['entry', 'u13', 'u18', 'stairs3'], step2: ['stairs3', 'u23', 'u22', 'r217'] },
+    r222: { step1: ['entry', 'u13', 'u7', 'stairs1'], step2: ['stairs1', 'u15', 'u17', 'r222'] },
+    r221: { step1: ['entry', 'u13', 'u7', 'stairs1'], step2: ['stairs1', 'u15', 'u19', 'r221'] },
+    pr: { step1: ['entry', 'u13', 'u18', 'stairs3'], step2: ['stairs3', 'u23', 'u21', 'pr'] },
+    r218: { step1: ['entry', 'u13', 'u18', 'stairs3'], step2: ['stairs3', 'u23', 'u24', 'r218'] },
+    r219: { step1: ['entry', 'u13', 'u18', 'stairs3'], step2: ['stairs3', 'u23', 'u25', 'u26', 'r219'] },
+    st: { step1: ['entry', 'u13', 'u18', 'stairs3'], step2: ['stairs3', 'u23', 'u25', 'u26', 'st'] },
+    sport: { step1: ['entry', 'u13', 'u18', 'stairs3'], step2: ['stairs3', 'u23', 'u24', 'sport'] }
+};
+
+const roomPaths3 = {
+    r301: { step1: ['entry', 'u13', 'u7', 'stairs1'], step2: ['stairs1', 'u17', 'u7', 'u1', 'r301'] },
+    r302: { step1: ['entry', 'u13', 'u7', 'stairs1'], step2: ['stairs1', 'u17', 'u7', 'u3', 'r302'] },
+    r303: { step1: ['entry', 'u13', 'u7', 'stairs1'], step2: ['stairs1', 'u17', 'u7', 'u4', 'r303'] },
+    r304: { step1: ['entry', 'u13', 'u7', 'stairs1'], step2: ['stairs1', 'u17', 'u7', 'u6', 'r304'] },
+    r305: { step1: ['entry', 'u13', 'u7', 'stairs1'], step2: ['stairs1', 'u17', 'u7', 'u9', 'r305'] },
+    r306: { step1: ['entry', 'u13', 'u7', 'stairs1'], step2: ['stairs1', 'u17', 'u7', 'u8', 'r306'] },
+    r307: { step1: ['entry', 'u13', 'u7', 'stairs2'], step2: ['stairs2', 'u18', 'u11', 'u10', 'r307'] },
+    r308: { step1: ['entry', 'u13', 'u7', 'stairs2'], step2: ['stairs2', 'u18', 'u11', 'u12', 'r308'] },
+    r309: { step1: ['entry', 'u13', 'u7', 'stairs2'], step2: ['stairs2', 'u18', 'u11', 'u13', 'r309'] },
+    r310: { step1: ['entry', 'u13', 'u7', 'stairs2'], step2: ['stairs2', 'u18', 'u11', 'u14', 'r310'] },
+    r311: { step1: ['entry', 'u13', 'u7', 'stairs2'], step2: ['stairs2', 'u18', 'u11', 'u16', 'r311'] },
+    art: { step1: ['entry', 'u13', 'u7', 'stairs2'], step2: ['stairs2', 'u18', 'u11', 'u15', 'art'] },
+    a: { step1: ['entry', 'u13', 'u7', 'stairs1'], step2: ['stairs1', 'u17', 'u7', 'u2', 'a'] },
+    b: { step1: ['entry', 'u13', 'u7', 'stairs1'], step2: ['stairs1', 'u17', 'u7', 'u5', 'b'] }
+};
+</script>
+
+
+<script>
+    function switchFloor(floor) 
+    {
+        currentFloor = floor;
+        document.querySelectorAll('.floor-btn').forEach((btn, index) => 
+        {
+            btn.classList.toggle('active', index + 1 === floor);
+        });
+        renderMap(null, null);
+    }
+
+    function renderMap(path, targetFloor, roomName = '') 
+    {
+        mapsEl.innerHTML = '';
+        if (targetFloor === 2 && path) 
+        {
+            renderTwoFloorMap(1, 2, path.step1, path.step2, roomName);
+        }
+        else if (targetFloor === 3 && path) 
+        {
+            renderTwoFloorMap(1, 3, path.step1, path.step2, roomName);
+        }
+        else 
+        {
+            renderSingleFloorMap(currentFloor, path);
+        }
+    }
+
+    function renderTwoFloorMap(floor1, floor2, path1, path2, roomName) 
+    {
+        const card1 = createMapCard(`${floor1} этаж, до лестницы`, 'step-1');
+        const svg1 = card1.querySelector('svg');
+        mapsEl.appendChild(card1);
+        drawFloor(floor1, svg1, path1, 'step1');
+        const card2 = createMapCard(`${floor2} этаж, до кабинета: ${roomName}`, 'step-2');
+        const svg2 = card2.querySelector('svg');
+        mapsEl.appendChild(card2);
+        drawFloor(floor2, svg2, path2, 'step2');
+    }
+
+    function renderSingleFloorMap(floor, path) 
+    {
+        const card = createMapCard(`${floor} этаж`);
+        const svg = card.querySelector('svg');
+        mapsEl.appendChild(card);
+        drawFloor(floor, svg, path, 'single');
+    }
+
+    function createMapCard(title, className = '') 
+    {
+        const card = document.createElement('div');
+        card.className = `map-card ${className}`;
+        card.innerHTML = `<div class="map-title ${className}">${title}</div><div class="map-wrapper"><svg viewBox="0 0 500 660"></svg></div>`;
+        return card;
+    }
+</script>
+
+<!-- отрисока карты -->
+<script>
+    function drawFloor(floor, svg, path, pathType) 
+    {
+        svg.innerHTML = '';
+        const f = floors[floor];
+        drawFloorPlan(svg, f.plan);
+        drawRoute(svg, f, path, pathType);
+        drawFloorNodes(svg, f, floor);
+        addClickHandlers(svg, floor);
+    }
+
+    function drawFloorPlan(svg, plan) 
+    {
+        if (!plan) return;
+        plan.forEach(street => 
+        {
+            if (street.type === 'line') 
+            {
+                let d = '';
+                street.points.forEach((point, i) => 
+                {
+                    d += (i === 0 ? `M${point.x} ${point.y}` : `L${point.x} ${point.y}`);
+                });
+                svg.insertAdjacentHTML('beforeend', `<path d="${d}" stroke="#718096" stroke-width="1.5" fill="none"/>`);
+            }
+        });
+    }
+
+    function drawRoute(svg, floorData, path, pathType) 
+    {
+        if (!path) return;
+        let routeClass = 'route';
+        if (pathType === 'step1') 
+        {
+            routeClass = 'route-step-1';
+        }
+        if (pathType === 'step2') 
+        {
+            routeClass = 'route-step-2';
+        }
+        const d = path.map((id, i) => 
+        {
+            const p = floorData.nodes[id];
+            return `${i ? 'L' : 'M'}${p.x},${p.y}`;
+        }).join(' ');
+        svg.insertAdjacentHTML('beforeend', `<path d="${d}" class="${routeClass}"/>`);
+    }
+
+    function drawFloorNodes(svg, floorData, floor) 
+    {
+        Object.entries(floorData.nodes).forEach(([id, n]) => {
+            const isEntry = id === 'entry';
+            const isStairs = id.startsWith('stairs');
+            const isRoom = floorData.rooms[id];
+            let radius = isRoom || isStairs ? 8 : (isEntry ? 8 : 0);
+            let className = 'node';
+            if (isRoom) 
+            {
+                className = 'room';
+            }
+            if (isStairs) 
+            {
+                className = 'staircase';
+            }
+            if (isEntry) 
+            {
+                className = 'entrance';
+            }
+            if (radius > 0) 
+            {
+                svg.insertAdjacentHTML('beforeend',
+                    `<circle cx="${n.x}" cy="${n.y}" r="${radius}" class="${className}"
+                    data-room="${isRoom ? id : ''}" data-stairs="${isStairs ? 'true' : 'false'}" data-floor="${floor}"/>`
+                );
+            }
+
+            if (n.label && (isRoom || isEntry || isStairs)) 
+            {
+                drawNodeLabel(svg, n, id);
+            }
+        });
+    }
+
+    function drawNodeLabel(svg, node, id) 
+    {
+        let yOffset = -15;
+        let xOffset = 0;
+        if (id.startsWith('liom') && id !== 'liom3') 
+        {
+            xOffset = -25;
+            yOffset = 4;
+        }
+        else if (id === 'entry' || id === 'binom' || id === 'r114' || id === 'liom3' || id === 'r221' || id === 'r222' || id === 'pr') 
+        {
+            yOffset = 20;
+        }
+        svg.insertAdjacentHTML('beforeend',
+            `<text x="${node.x + xOffset}" y="${node.y + yOffset}" class="label">${node.label}</text>`
+        );
+    }
+
+    function addClickHandlers(svg, floor) 
+    {
+        svg.querySelectorAll('[data-room]').forEach(el => {
+            if (!el.dataset.room || el.dataset.stairs === 'true') 
+            {
+                return;
+            }
+            el.style.cursor = 'pointer';
+            el.onclick = () => 
+            {
+                const roomCode = el.dataset.room;
+                if (roomReverseAliases[roomCode]) 
+                {
+                    roomInput.value = roomReverseAliases[roomCode];
+                }
+                else 
+                {
+                    roomInput.value = roomCode.replace('r', '');
+                }
+                buildRoute();
+            };
+        });
+    }
+</script>
+
+<!-- построение пути -->
+<script>
+        function buildRoute() 
+        {
+            const room = normalizeInput(roomInput.value);
+            if (!room) 
+            {
+                alert('Пожалуйста, введите номер кабинета или название помещения');
+                return;
+            }
+            const { roomCode, targetFloor } = findRoom(room);
+            if (!roomCode) 
+            {
+                alert('Кабинет не найден!');
+                return;
+            }
+            if (targetFloor !== null && targetFloor !== currentFloor) 
+            {
+                switchFloor(targetFloor);
+            }
+            const floor = targetFloor || currentFloor;
+            renderRouteForFloor(floor, roomCode);
+        }
+    
+    function normalizeInput(input)
+    {
+        if (!input) 
+        {
+            return null;
+        }
+        return input.trim().toLowerCase().replace(/\s+/g, ' ').replace(/[\-\.]/g, ' ');
+    }
+
+    function findRoom(room) 
+    {
+        let roomCode = null;
+        let targetFloor = null;
+        if (/^10[1-8]$/.test(room.replace(/\D/g, ''))) 
+        {
+            roomCode = `r${room.replace(/\D/g, '')}`;
+            targetFloor = 1;
+        }
+        else if (/^11[14]$/.test(room.replace(/\D/g, ''))) 
+        {
+            roomCode = `r${room.replace(/\D/g, '')}`;
+            targetFloor = 1;
+        }
+        else if (/^20[1-8]$/.test(room.replace(/\D/g, ''))) 
+        {
+            roomCode = `r${room.replace(/\D/g, '')}`;
+            targetFloor = 2;
+        }
+        else if (/^21[4-9]$/.test(room.replace(/\D/g, ''))) 
+        {
+            roomCode = `r${room.replace(/\D/g, '')}`;
+            targetFloor = 2;
+        }
+        else if (/^22[12]$/.test(room.replace(/\D/g, ''))) 
+        {
+            roomCode = `r${room.replace(/\D/g, '')}`;
+            targetFloor = 2;
+        }
+        else if (/^30[1-9]$/.test(room.replace(/\D/g, '')) || /^31[01]$/.test(room.replace(/\D/g, ''))) 
+        {
+            roomCode = `r${room.replace(/\D/g, '')}`;
+            targetFloor = 3;
+        }
+        else if (roomAliases[room]) 
+        {
+            roomCode = roomAliases[room];
+            targetFloor = getFloorByRoomCode(roomCode);
+        }
+
+        if (!targetFloor) 
+        {
+            targetFloor = findRoomByText(room);
+            if (targetFloor) 
+            {
+                roomCode = getRoomCodeByText(room, targetFloor);
+            }
+        }
+        return { roomCode, targetFloor };
+    }
+
+    
+    function getFloorByRoomCode(roomCode)
+    {
+        if (['tk', 'binom', 'liom1', 'liom2', 'liom3'].includes(roomCode)) 
+        {
+            return 1;
+        }
+        if (['ny', 'l', 'vr', 'mk', 's', 'pr', 'st'].includes(roomCode)) 
+        {
+            return 2;
+        }
+        if (['art', 'a', 'b'].includes(roomCode)) 
+        {
+            return 3;
+        }
+        return null;
+    }
+
+    function findRoomByText(room) 
+    {
+        if (room.includes('точка') || room.includes('кипен') || room.includes('тк')) 
+        {
+            return 1;
+        }
+        if (room.includes('спорт') || room.includes('физ')) 
+        {
+            return 1;
+        }
+        if (room.includes('бином') || room.includes('бино') || room === 'б') 
+        {
+            return 1;
+        }
+        if (room.includes('лиом') || room.includes('лио')) 
+        {
+            return 1;
+        }
+        if (room === 'ny' || room.includes('new') || room.includes('york'))
+        {
+            return 2;
+        }
+        if (room === 'l' || room.includes('lond'))
+        {
+            return 2;
+        }
+        if (room === 'vr' || room.includes('V')) 
+        {
+            return 2;
+        }
+        if (room === 'mk' || room.includes('ед')) 
+        {
+            return 2;
+        }
+        if (room === 's' || room.includes('sydn')) 
+        {
+            return 2;
+        }
+        if (room.includes('толов'))
+        {
+            return 2;
+        }
+        if (room.includes('прием'))
+        {
+            return 2;
+        }
+        if (room === 'art' || room.includes('арт') || room.includes('ориум')) 
+        {
+            return 3;
+        }
+        if (room === 'альфа' || room === 'а')
+        {
+            return 3;
+        }
+        if (room === 'бетта' || room === 'бет') 
+        {
+            return 3;
+        }
+        return null;
+    }
+
+    function getRoomCodeByText(room, floor) 
+    {
+        if (room.includes('очка') || room.includes('ипен') || room.includes('тк')) 
+        {
+            return 'tk';
+        }
+        if (room.includes('порт') || room.includes('из')) 
+        {
+            return 'sport';
+        }
+        if (room.includes('ином'))
+        {
+            return 'binom';
+        }
+        if (room.includes('иом')) 
+        {
+            const m = room.match(/(\d)/);
+            if (m) 
+            {
+                return `liom${m[1]}`;
+            }
+        }
+        if (room.includes('ew') || room.includes('ork')) 
+        {
+            return 'ny';
+        }
+        if (room.includes('don') || room.includes('онд')) 
+        {
+            return 'l';
+        }
+        if (room === 'vr' || room.includes('V') || room.includes('v')) 
+        {
+            return 'vr';
+        }
+        if (room === 'mk' || room.includes('ед')) 
+        {
+            return 'mk';
+        }
+        if (room.includes('ydney') || room.includes('идней')) 
+        {
+            return 's';
+        }
+        if (room.includes('толов')) 
+        {
+            return 'st';
+        }
+        if (room.includes('рием')) 
+        {
+            return 'pr';
+        }
+        if (room.includes('арт') || room.includes('ориум')) 
+        {
+            return 'art';
+        }
+        if (room.includes('льфа')) 
+        {
+            return 'a';
+        }
+        if (room.includes('ет')) 
+        {
+            return 'b';
+        }
+        return null;
+    }
+
+    function renderRouteForFloor(floor, roomCode) 
+    {
+        if (floor === 1) 
+        {
+            if (!roomPaths1[roomCode]) 
+            {
+                alert('Кабинет не найден!');
+                return;
+            }
+            renderMap(roomPaths1[roomCode], 1, roomReverseAliases[roomCode] || roomCode);
+        }
+        else if (floor === 2) 
+        {
+            if (!roomPaths2[roomCode]) 
+            {
+                alert('Кабинет не найден!');
+                return;
+            }
+            renderMap(roomPaths2[roomCode], 2, roomReverseAliases[roomCode] || roomCode);
+        }
+        else if (floor === 3) 
+        {
+            if (!roomPaths3[roomCode]) 
+            {
+                alert('Кабинет не найден!');
+                return;
+            }
+            renderMap(roomPaths3[roomCode], 3, roomReverseAliases[roomCode] || roomCode);
+        }
+    }
+</script>
+
+<!-- ввод через enter -->
+<script>
+    renderMap(null, null);
+    roomInput.addEventListener('keypress', (e) => 
+    {
+        if (e.key === 'Enter') 
+        {
+            buildRoute();
+        }
+    });
+</script>
+
+</body>
+</html>

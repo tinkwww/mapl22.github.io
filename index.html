@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Карта школы</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+<header>
+<h1>Карта школы</h1>
+<p class="subtitle">Найдите любой кабинет за несколько секунд</p>
+</header>
+
+<div class="instructions">
+<h3>Как пользоваться:</h3>
+<p>Введите номер кабинета или название. Маршрут будет построен автоматически!</p>
+</div>
+
+<div class="floor-selector">
+<button class="floor-btn active" onclick="switchFloor(1)">1 этаж</button>
+<button class="floor-btn" onclick="switchFloor(2)">2 этаж</button>
+<button class="floor-btn" onclick="switchFloor(3)">3 этаж</button>
+</div>
+
+<div class="search-section">
+<input id="roomInput" placeholder="Введите номер или название:" maxlength="30" />
+<button onclick="buildRoute()">Найти</button>
+</div>
+
+<div class="maps" id="maps"></div>
+</div>
+
+<script src="scripts.js"></script>
+</body>
+</html>
